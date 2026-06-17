@@ -27,7 +27,7 @@ from pathlib import Path
 # --- Configuration ---------------------------------------------------------
 # Update these once you've published a GitHub Release with the .pt files
 # attached as release assets.
-GITHUB_REPO = "yourusername/deepfake-detection-platform"
+GITHUB_REPO = "Rishichamp/deepfake-detection-platform"
 RELEASE_TAG = "v1.0-weights"
 
 WEIGHT_FILES = ["efficientnet_b4.pt", "vit_base.pt", "cnn_lstm.pt"]
