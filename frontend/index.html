@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="DeepFake Sentinel — AI-powered deepfake detection platform with multi-model ensemble analysis." />
+  <meta name="theme-color" content="#05060f" />
+  <title>DeepFake Sentinel — AI Detection Platform</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- App Styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ===== Animated Background Orbs ===== -->
+  <div class="bg-orbs" aria-hidden="true">
+    <div class="orb orb--cyan"></div>
+    <div class="orb orb--purple"></div>
+    <div class="orb orb--magenta"></div>
+  </div>
+
+  <!-- ===== Loading Overlay ===== -->
+  <div id="loadingOverlay" class="loading-overlay" aria-hidden="true">
+    <div class="spinner">
+      <div class="spinner__ring spinner__ring--outer"></div>
+      <div class="spinner__ring spinner__ring--inner"></div>
+    </div>
+    <p class="loading-text">Analyzing media…</p>
+    <p class="loading-sub">Running ensemble model inference</p>
+  </div>
+
+  <!-- ===== Toast Container ===== -->
+  <div id="toastContainer" class="toast-container"></div>
+
+  <!-- ===== Header ===== -->
+  <header class="header glass">
+    <div class="header__inner container">
+      <a href="#" class="logo" aria-label="DeepFake Sentinel Home">
+        <span class="logo__icon">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <circle cx="16" cy="16" r="14" stroke="url(#logoGrad)" stroke-width="2.5"/>
+            <path d="M10 16 L14 20 L22 12" stroke="url(#logoGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <defs><linearGradient id="logoGrad" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#00d4ff"/><stop offset="1" stop-color="#7b2ff7"/></linearGradient></defs>
+          </svg>
+        </span>
+        <span class="logo__text">DeepFake <span class="logo__accent">Sentinel</span></span>
+      </a>
+
+      <nav class="nav" aria-label="Main navigation">
+        <a href="#upload" class="nav__link nav__link--active">Upload</a>
+        <a href="#results" class="nav__link">Results</a>
+        <a href="#" class="nav__link" id="navAgentBtn">Agent</a>
+        <a href="#about" class="nav__link">About</a>
+      </nav>
+
+      <button class="header__menu" id="mobileMenuBtn" aria-label="Toggle menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ===== Main Content ===== -->
+  <main class="main">
+
+    <!-- Hero / Upload Section -->
+    <section id="upload" class="section section--upload">
+      <div class="container">
+        <div class="section__header fade-up">
+          <h1 class="section__title">Detect Deepfakes with <span class="gradient-text">AI Precision</span></h1>
+          <p class="section__subtitle">Upload any image or video and our multi-model ensemble will analyze it frame-by-frame for manipulation artifacts.</p>
+        </div>
+
+        <!-- Upload Zone -->
+        <div class="upload-zone fade-up" id="uploadZone" role="button" tabindex="0" aria-label="Drop files here or click to upload">
+          <div class="upload-zone__border"></div>
+          <div class="upload-zone__content">
+            <div class="upload-zone__icon">
+              <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                <path d="M32 8 L32 42" stroke="url(#upGrad)" stroke-width="3" stroke-linecap="round"/>
+                <path d="M20 20 L32 8 L44 20" stroke="url(#upGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <path d="M8 40 L8 50 Q8 56 14 56 L50 56 Q56 56 56 50 L56 40" stroke="url(#upGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                <defs><linearGradient id="upGrad" x1="8" y1="8" x2="56" y2="56"><stop stop-color="#00d4ff"/><stop offset="1" stop-color="#7b2ff7"/></linearGradient></defs>
+              </svg>
+            </div>
+            <h3 class="upload-zone__title">Drag & Drop your file here</h3>
+            <p class="upload-zone__text">or click to browse</p>
+            <div class="upload-zone__types">
+              <span class="badge">.mp4</span>
+              <span class="badge">.avi</span>
+              <span class="badge">.mov</span>
+              <span class="badge">.jpg</span>
+              <span class="badge">.png</span>
+              <span class="badge">.webp</span>
+            </div>
+            <button class="btn btn--primary upload-zone__btn" id="uploadBtn">
+              <span>Select File</span>
+            </button>
+          </div>
+          <input type="file" id="fileInput" accept="video/*,image/*" hidden />
+        </div>
+
+        <!-- Preview Area -->
+        <div class="preview-area glass-card fade-up" id="previewArea" hidden>
+          <div class="preview-area__media" id="previewMedia"></div>
+          <div class="preview-area__info">
+            <p class="preview-area__name" id="previewName"></p>
+            <p class="preview-area__meta" id="previewMeta"></p>
+            <button class="btn btn--primary" id="analyzeBtn">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+              <span>Analyze</span>
+            </button>
+            <button class="btn btn--ghost" id="clearBtn">Clear</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Results Section -->
+    <section id="results" class="section section--results" hidden>
+      <div class="container">
+        <div class="section__header fade-up">
+          <h2 class="section__title">Analysis <span class="gradient-text">Results</span></h2>
+          <p class="section__subtitle">Multi-model ensemble detection with frame-level analysis</p>
+        </div>
+
+        <!-- Verdict Card -->
+        <div class="verdict-card glass-card fade-up" id="verdictCard">
+          <div class="verdict-card__badge" id="verdictBadge">
+            <span class="verdict-card__label" id="verdictLabel">ANALYZING</span>
+          </div>
+          <div class="verdict-card__score">
+            <span class="verdict-card__number" id="verdictNumber">0</span>
+            <span class="verdict-card__percent">%</span>
+          </div>
+          <p class="verdict-card__caption">Overall Confidence Score</p>
+          <div class="verdict-card__bar">
+            <div class="verdict-card__bar-fill" id="verdictBarFill"></div>
+          </div>
+        </div>
+
+        <!-- Model Cards -->
+        <div class="model-grid fade-up">
+          <div class="model-card glass-card" data-model="efficientnet">
+            <div class="model-card__ring">
+              <svg viewBox="0 0 120 120">
+                <circle class="model-card__ring-bg" cx="60" cy="60" r="52"/>
+                <circle class="model-card__ring-fill" cx="60" cy="60" r="52" data-progress="0"/>
+              </svg>
+              <span class="model-card__ring-value">0%</span>
+            </div>
+            <h4 class="model-card__name">EfficientNet</h4>
+            <p class="model-card__desc">Spatial artifact detection</p>
+          </div>
+
+          <div class="model-card glass-card" data-model="vit">
+            <div class="model-card__ring">
+              <svg viewBox="0 0 120 120">
+                <circle class="model-card__ring-bg" cx="60" cy="60" r="52"/>
+                <circle class="model-card__ring-fill" cx="60" cy="60" r="52" data-progress="0"/>
+              </svg>
+              <span class="model-card__ring-value">0%</span>
+            </div>
+            <h4 class="model-card__name">Vision Transformer</h4>
+            <p class="model-card__desc">Attention-based analysis</p>
+          </div>
+
+          <div class="model-card glass-card" data-model="cnn_lstm">
+            <div class="model-card__ring">
+              <svg viewBox="0 0 120 120">
+                <circle class="model-card__ring-bg" cx="60" cy="60" r="52"/>
+                <circle class="model-card__ring-fill" cx="60" cy="60" r="52" data-progress="0"/>
+              </svg>
+              <span class="model-card__ring-value">0%</span>
+            </div>
+            <h4 class="model-card__name">CNN-LSTM</h4>
+            <p class="model-card__desc">Temporal consistency check</p>
+          </div>
+        </div>
+
+        <!-- Frame Analysis Chart -->
+        <div class="chart-section glass-card fade-up">
+          <div class="chart-section__header">
+            <h3 class="chart-section__title">Frame-by-Frame Analysis</h3>
+            <div class="chart-section__legend" id="chartLegend"></div>
+          </div>
+          <div class="chart-section__canvas">
+            <canvas id="frameChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Detection Details -->
+        <details class="details-section glass-card fade-up">
+          <summary class="details-section__summary">
+            <span>Detection Details & Metadata</span>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 9l6 6 6-6"/></svg>
+          </summary>
+          <div class="details-section__content" id="detailsContent">
+            <div class="detail-grid" id="detailGrid"></div>
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section section--about">
+      <div class="container">
+        <div class="about-grid fade-up">
+          <div class="about-card glass-card">
+            <div class="about-card__icon">🧠</div>
+            <h3>Multi-Model Ensemble</h3>
+            <p>Combines EfficientNet, Vision Transformer, and CNN-LSTM for robust detection across manipulation types.</p>
+          </div>
+          <div class="about-card glass-card">
+            <div class="about-card__icon">🎞️</div>
+            <h3>Frame-Level Analysis</h3>
+            <p>Every frame is individually analyzed and scored, revealing temporal inconsistencies invisible to the eye.</p>
+          </div>
+          <div class="about-card glass-card">
+            <div class="about-card__icon">🤖</div>
+            <h3>AI Investigator</h3>
+            <p>An intelligent agent that explains findings, answers questions, and provides actionable forensic insights.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ===== AI Chat Sidebar ===== -->
+  <div class="chat-overlay" id="chatOverlay"></div>
+  <aside class="chat-panel glass" id="chatPanel" aria-label="AI Investigator Chat">
+    <div class="chat-panel__header">
+      <div class="chat-panel__avatar">
+        <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+          <rect x="2" y="2" width="28" height="28" rx="8" stroke="url(#aiGrad)" stroke-width="2"/>
+          <circle cx="12" cy="14" r="2" fill="#00d4ff"/>
+          <circle cx="20" cy="14" r="2" fill="#7b2ff7"/>
+          <path d="M10 22 Q16 26 22 22" stroke="url(#aiGrad)" stroke-width="1.5" stroke-linecap="round"/>
+          <defs><linearGradient id="aiGrad" x1="0" y1="0" x2="32" y2="32"><stop stop-color="#00d4ff"/><stop offset="1" stop-color="#ff2d7c"/></linearGradient></defs>
+        </svg>
+      </div>
+      <div>
+        <h3 class="chat-panel__title">DeepFake Investigator</h3>
+        <span class="chat-panel__status"><span class="status-dot"></span> AI Agent Online</span>
+      </div>
+      <button class="chat-panel__close" id="chatCloseBtn" aria-label="Close chat">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <div class="chat-panel__messages" id="chatMessages">
+      <div class="chat-msg chat-msg--agent">
+        <div class="chat-msg__bubble">
+          <p>👋 Hello! I'm the <strong>DeepFake Investigator</strong>. Upload a file and I'll provide detailed forensic analysis of the detection results.</p>
+        </div>
+      </div>
+    </div>
+
+    <form class="chat-panel__input" id="chatForm">
+      <input type="text" id="chatInput" placeholder="Ask about the analysis…" autocomplete="off" />
+      <button type="submit" class="btn btn--icon" aria-label="Send message">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </button>
+    </form>
+  </aside>
+
+  <!-- Chat Toggle FAB -->
+  <button class="chat-fab" id="chatFab" aria-label="Open AI Investigator">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
+    <span class="chat-fab__badge" id="chatBadge" hidden>1</span>
+  </button>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="container footer__inner">
+      <p class="footer__copy">&copy; 2026 DeepFake Sentinel. Built with cutting-edge AI.</p>
+      <div class="footer__badges">
+        <span class="tech-badge">Python</span>
+        <span class="tech-badge">FastAPI</span>
+        <span class="tech-badge">PyTorch</span>
+        <span class="tech-badge">Chart.js</span>
+      </div>
+      <div class="footer__links">
+        <a href="https://github.com" target="_blank" rel="noopener" class="footer__link">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/></svg>
+          GitHub
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- App Script -->
+  <script src="app.js"></script>
+</body>
+</html>
