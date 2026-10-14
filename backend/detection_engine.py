@@ -137,13 +137,13 @@ class DetectionEngine:
 
             eff = create_efficientnet(pretrained=False)
             eff.load_state_dict(
-                torch.load(self.weights_dir / "efficientnet_b4.pt", map_location=self.device)
+                torch.load(self.weights_dir / "efficientnet_b4.pt", map_location=self.device, weights_only=True)
             )
             eff.eval().to(self.device)
 
             vit = create_vit(pretrained=False)
             vit.load_state_dict(
-                torch.load(self.weights_dir / "vit_base.pt", map_location=self.device)
+                torch.load(self.weights_dir / "vit_base.pt", map_location=self.device, weights_only=True)
             )
             vit.eval().to(self.device)
 
@@ -156,7 +156,7 @@ class DetectionEngine:
             if lstm_path.is_file():
                 try:
                     lstm = create_cnn_lstm(pretrained=False)
-                    lstm.load_state_dict(torch.load(lstm_path, map_location=self.device))
+                    lstm.load_state_dict(torch.load(lstm_path, map_location=self.device, weights_only=True))
                     lstm.eval().to(self.device)
                     self.models["cnn_lstm"] = lstm
                     logger.info("Loaded CNN-LSTM weights from '%s'.", lstm_path)
