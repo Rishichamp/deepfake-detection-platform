@@ -65,16 +65,19 @@ class DeepfakeInvestigator:
             return
 
         try:
-            import google.generativeai as genai
+            # google-generativeai (the old SDK) is deprecated; google-genai
+            # replaces it. "gemini-flash-latest" follows Google's current Flash
+            # model, so a model retirement doesn't silently disable the agent.
+            from google import genai
 
-            genai.configure(api_key=api_key)
-            self._gemini_model = genai.GenerativeModel("gemini-2.0-flash")
+            self._gemini_client = genai.Client(api_key=api_key)
+            self._gemini_model_name = os.environ.get("GEMINI_MODEL", "gemini-flash-latest")
             self._gemini_available = True
-            logger.info("Gemini integration enabled (model: gemini-2.0-flash).")
+            logger.info("Gemini integration enabled (model: %s).", self._gemini_model_name)
         except ImportError:
             logger.warning(
-                "google-generativeai package not installed. "
-                "Install with: pip install google-generativeai"
+                "google-genai package not installed. "
+                "Install with: pip install google-genai"
             )
         except Exception as e:
             logger.warning("Failed to initialize Gemini: %s", e)
@@ -759,8 +762,7 @@ class DeepfakeInvestigator:
             f"Automated Analysis:\n{rule_analysis}"
         )
 
-        response = self._gemini_model.generate_content(prompt)
-        return response.text
+        return self._generate(prompt)
 
     def _gemini_chat(self, message: str, context: dict) -> str:
         """Use Gemini for conversational responses about detection results."""
@@ -776,5 +778,12 @@ class DeepfakeInvestigator:
             f"User question: {message}"
         )
 
-        response = self._gemini_model.generate_content(prompt)
+        return self._generate(prompt)
+
+    def _generate(self, prompt: str) -> str:
+        response = self._gemini_client.models.generate_content(
+            model=self._gemini_model_name, contents=prompt
+        )
+        if not response.text:
+            raise RuntimeError("Gemini returned an empty response")
         return response.text

@@ -1,0 +1,19 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      # Simulation-mode tests don't need torch; install the rest only.
+      - run: pip install "fastapi>=0.143.1" "python-multipart>=0.0.32" "opencv-python-headless>=4.10.0.84" "Pillow>=12.3.0" numpy "google-genai>=1.0.0" httpx pytest
+      - run: python -m pytest -q tests

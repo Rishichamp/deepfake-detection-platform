@@ -231,6 +231,18 @@ These are the actual validation metrics from the training runs in this repositor
 
 Full request/response shapes are documented in `backend/detection_engine.py` and `backend/main.py` docstrings.
 
+**Gemini (optional):** set `GEMINI_API_KEY`; `GEMINI_MODEL` picks the model
+(default `gemini-flash-latest`). Uses the `google-genai` SDK (the older
+`google-generativeai` package is deprecated).
+
+### Tests
+
+```bash
+pip install -r backend/requirements.txt
+python -m pytest -q tests
+```
+They run in simulation mode, so no weights or API key are needed.
+
 ---
 
 ## Project Structure

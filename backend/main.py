@@ -6,6 +6,7 @@ import uuid
 from pathlib import Path
 
 from fastapi import FastAPI, File, HTTPException, Request, UploadFile
+from fastapi.concurrency import run_in_threadpool
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
@@ -29,6 +30,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = BASE_DIR / "frontend"
 UPLOAD_DIR = Path(os.environ.get("UPLOAD_DIR", BASE_DIR / "backend" / "uploads"))
 MAX_UPLOAD_SIZE = int(os.environ.get("MAX_UPLOAD_SIZE_BYTES", 200 * 1024 * 1024))  # 200MB
+MAX_CHAT_CHARS = 2000
 KEEP_UPLOADS = os.environ.get("KEEP_UPLOADS", "false").lower() == "true"
 
 UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
@@ -45,7 +47,9 @@ app = FastAPI(
 app.add_middleware(
     CORSMiddleware,
     allow_origins=os.environ.get("CORS_ORIGINS", "*").split(","),
-    allow_credentials=True,
+    # No cookies or auth headers are used; with "*" origins, credentials=True
+    # made Starlette echo back any requesting origin as allowed.
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -165,7 +169,9 @@ async def detect_deepfake(file: UploadFile = File(...)):
             engine.mode,
         )
 
-        result = engine.detect(str(saved_path), file.filename)
+        # Inference can take seconds (video); run it off the event loop so
+        # other requests (health checks, chat, other uploads) aren't frozen.
+        result = await run_in_threadpool(engine.detect, str(saved_path), file.filename)
         return JSONResponse(content=result)
 
     except HTTPException:
@@ -196,14 +202,22 @@ async def chat_with_agent(request: Request):
     except Exception:
         raise HTTPException(status_code=400, detail="Request body must be valid JSON.")
 
-    message = (data.get("message") or "").strip()
+    if not isinstance(data, dict):
+        raise HTTPException(status_code=400, detail="Request body must be a JSON object.")
+
+    message = str(data.get("message") or "").strip()
     if not message:
         raise HTTPException(status_code=400, detail="'message' field is required.")
+    if len(message) > MAX_CHAT_CHARS:
+        raise HTTPException(status_code=413, detail=f"Message too long (max {MAX_CHAT_CHARS} characters).")
 
     context = data.get("context")
+    if context is not None and not isinstance(context, dict):
+        raise HTTPException(status_code=400, detail="'context' must be an object.")
 
     try:
-        response = agent.chat(message, context)
+        # Gemini calls are blocking network requests
+        response = await run_in_threadpool(agent.chat, message, context)
         return {"response": response}
     except Exception:
         logger.exception("Agent chat failed for message: %r", message)
