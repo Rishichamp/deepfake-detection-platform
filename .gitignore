@@ -32,3 +32,6 @@ data_samples/*.mp4
 data_samples/*.jpg
 data_samples/*.png
 response.json
+
+# Personal study notes (kept locally, not published)
+study_guide.md

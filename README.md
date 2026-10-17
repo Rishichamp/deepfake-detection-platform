@@ -14,8 +14,7 @@
   <a href="#quick-start">Quick Start</a> •
   <a href="#models--training">Models &amp; Training</a> •
   <a href="#results">Results</a> •
-  <a href="#api-reference">API</a> •
-  <a href="study_guide.md">Study Guide</a>
+  <a href="#api-reference">API</a>
 </p>
 
 ---
@@ -250,7 +249,6 @@ They run in simulation mode, so no weights or API key are needed.
 ```
 deepfake-detection-platform/
 ├── README.md
-├── study_guide.md
 ├── run.py
 ├── download_weights.py        # Fetches trained .pt files from a GitHub Release
 ├── .gitignore
