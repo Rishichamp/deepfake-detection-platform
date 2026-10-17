@@ -168,6 +168,7 @@ A ResNet-18 frame-feature extractor feeding a 2-layer bidirectional LSTM with ad
 | CNN-LSTM | [UniDataPro/deepfake-videos-dataset](https://huggingface.co/datasets/UniDataPro/deepfake-videos-dataset) (Hugging Face) — real webcam clips vs. face-swap/lip-sync deepfakes | 10 clips total (8 train / 2 valid) | Demonstration of the training pipeline; not enough data for reliable generalization |
 
 Training was done in Google Colab on a T4 GPU. Notebooks are provided in `training/` so the entire process is reproducible:
+
 - `training/phase1_train_efficientnet_vit.ipynb`
 - `training/phase2_train_cnn_lstm.ipynb`
 
